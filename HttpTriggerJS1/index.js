@@ -1,30 +1,29 @@
-module.exports = function (context, req) {
-    context.log('JavaScript HTTP trigger function processed a request.');
+module.exports = async function (context, req) {
+  try {
+    context.log('HTTP trigger received');
 
-    const name = req.body && req.body.name;
-    const email = req.body && req.body.email;
+    const { name, email } = req.body || {};
 
-    if (name && email) {
-        context.res = {
-            headers: { 'Content-Type': 'application/json' },
-            body: {
-                greeting: `Hello ${name}!`,
-                email: email,
-                message: "This is your POST response from Akshay's Azure Function.",
-                status: "success"
-            }
-        };
-    }
-    else {
-        context.res = {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-            body: {
-                error: "Please provide both 'name' and 'email' in the JSON body.",
-                status: "error"
-            }
-        };
+    if (!name || !email) {
+      context.res = { status:400, body:{ error:"Provide name AND email", status:"error"} };
+      return;
     }
 
-    context.done();
+    context.res = {
+      headers:{ 'Content-Type':'application/json' },
+      body: {
+        greeting:`Hello ${name}!`,
+        email,
+        message:"POST response from Akshay's Azure Function.",
+        status:"success"
+      }
+    };
+  } catch (err) {
+    context.log.error('Unhandled exception:', err);
+    context.res = {
+      status:500,
+      headers:{ 'Content-Type':'application/json' },
+      body:{ error: err.message, status:"error" }
+    };
+  }
 };
